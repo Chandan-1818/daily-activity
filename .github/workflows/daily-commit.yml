@@ -1,0 +1,49 @@
+name: Daily 3 Commits
+
+on:
+  schedule:
+    # 6:00 AM IST (00:30 UTC)
+    - cron: "30 0 * * *"
+
+    # 2:00 PM IST (08:30 UTC)
+    - cron: "30 8 * * *"
+
+    # 10:00 PM IST (16:30 UTC)
+    - cron: "30 16 * * *"
+
+  workflow_dispatch:
+
+permissions:
+  contents: write
+
+jobs:
+  commit:
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+
+      - name: Configure Git
+        run: |
+          git config user.name "github-actions[bot]"
+          git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
+
+      - name: Update file
+        run: |
+          echo "Commit made at $(date -u)" >> last-updated.txt
+
+      - name: Commit changes
+        run: |
+          git add last-updated.txt
+
+          if git diff --cached --quiet; then
+            echo "No changes to commit."
+            exit 0
+          fi
+
+          git commit -m "Auto commit - $(date -u +"%Y-%m-%d %H:%M:%S UTC")"
+
+      - name: Push changes
+        run: |
+          git push
