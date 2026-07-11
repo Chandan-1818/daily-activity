@@ -1,0 +1,58 @@
+name: Daily 10 Commits
+
+on:
+  schedule:
+    # Runs every hour
+    - cron: "0 * * * *"
+  workflow_dispatch:
+
+permissions:
+  contents: write
+
+jobs:
+  commit:
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+
+      - name: Configure Git
+        run: |
+          git config user.name "github-actions[bot]"
+          git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
+
+      - name: Check Commit Time
+        run: |
+          HOUR=$(TZ=Asia/Kolkata date +%H)
+
+          case "$HOUR" in
+            0|2|4|7|9|12|15|18|20|22)
+              echo "DO_COMMIT=true" >> $GITHUB_ENV
+              ;;
+            *)
+              echo "DO_COMMIT=false" >> $GITHUB_ENV
+              ;;
+          esac
+
+      - name: Update File
+        if: env.DO_COMMIT == 'true'
+        run: |
+          echo "Commit made at $(TZ=Asia/Kolkata date '+%Y-%m-%d %H:%M:%S IST')" >> last-updated.txt
+
+      - name: Commit Changes
+        if: env.DO_COMMIT == 'true'
+        run: |
+          git add last-updated.txt
+
+          if git diff --cached --quiet; then
+            echo "No changes to commit."
+            exit 0
+          fi
+
+          git commit -m "Auto commit - $(TZ=Asia/Kolkata date '+%Y-%m-%d %H:%M:%S IST')"
+
+      - name: Push Changes
+        if: env.DO_COMMIT == 'true'
+        run: |
+          git push
