@@ -23,36 +23,34 @@ jobs:
           git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
 
       - name: Check Commit Time
+        id: check_time
         run: |
           HOUR=$(TZ=Asia/Kolkata date +%H)
+          echo "Current hour in IST: $HOUR"
 
           case "$HOUR" in
-            0|2|4|7|9|12|15|18|20|22)
-              echo "DO_COMMIT=true" >> $GITHUB_ENV
+            00|02|04|07|09|12|15|18|20|22)
+              echo "should_commit=true" >> $GITHUB_OUTPUT
               ;;
             *)
-              echo "DO_COMMIT=false" >> $GITHUB_ENV
+              echo "should_commit=false" >> $GITHUB_OUTPUT
               ;;
           esac
 
       - name: Update File
-        if: env.DO_COMMIT == 'true'
+        if: steps.check_time.outputs.should_commit == 'true'
         run: |
           echo "Commit made at $(TZ=Asia/Kolkata date '+%Y-%m-%d %H:%M:%S IST')" >> last-updated.txt
 
-      - name: Commit Changes
-        if: env.DO_COMMIT == 'true'
+      - name: Commit and Push Changes
+        if: steps.check_time.outputs.should_commit == 'true'
         run: |
           git add last-updated.txt
-
-          if git diff --cached --quiet; then
+          
+          # Only commit and push if there are actual changes
+          if ! git diff --cached --quiet; then
+            git commit -m "Auto commit - $(TZ=Asia/Kolkata date '+%Y-%m-%d %H:%M:%S IST')"
+            git push
+          else
             echo "No changes to commit."
-            exit 0
           fi
-
-          git commit -m "Auto commit - $(TZ=Asia/Kolkata date '+%Y-%m-%d %H:%M:%S IST')"
-
-      - name: Push Changes
-        if: env.DO_COMMIT == 'true'
-        run: |
-          git push
