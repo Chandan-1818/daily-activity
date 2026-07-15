@@ -1,11 +1,12 @@
-name: Hourly Auto Commit
+name: 5 Times Daily Auto Commit
 
 permissions:
   contents: write
 
 on:
   schedule:
-    - cron: "0 * * * *"   # Every hour
+    # Runs at 00:00, 05:00, 10:00, 15:00, and 20:00 UTC every day
+    - cron: "0 0,5,7,12,22,10,15,20 * * *"
   workflow_dispatch:
 
 jobs:
@@ -31,15 +32,15 @@ jobs:
 
           messages=(
             "chore(bot): 🤖 auto commit"
-            "chore(bot): 🚀 hourly update"
-            "chore(bot): ✨ scheduled commit"
+            "chore(bot): 🚀 scheduled update"
+            "chore(bot): ✨ periodic commit"
             "chore(bot): 🔄 repository update"
-            "chore(bot): 📅 hourly sync"
+            "chore(bot): 📅 daily sync"
             "chore(bot): 📝 update timestamp"
             "chore(bot): ⚡ maintenance"
             "chore(bot): 🌟 keep active"
             "chore(bot): 🎯 automated update"
-            "chore(bot): ✅ hourly commit"
+            "chore(bot): ✅ routine commit"
           )
 
           random_index=$((RANDOM % ${#messages[@]}))
